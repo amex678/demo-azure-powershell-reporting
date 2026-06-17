@@ -98,8 +98,8 @@ Connect-AzAccount
 ```
 .
 ├── .devcontainer/
-│   ├── devcontainer.json    # PowerShell 7 + Az ベースの Dev Container 定義
-│   └── setup.ps1            # postCreateCommand で実行するモジュール導入スクリプト
+│   ├── devcontainer.json    # Dev Container の定義本体 (ベースイメージ・拡張・ポート転送など)
+│   └── setup.ps1            # コンテナ作成後に走る Az モジュール導入スクリプト
 ├── .vscode/
 │   ├── extensions.json      # 推奨拡張 (Azure / PowerShell / Live Server / Containers)
 │   └── settings.json        # PowerShell フォーマット & Live Server 設定
@@ -113,6 +113,41 @@ Connect-AzAccount
 │   └── admin-report.html
 └── README.md
 ```
+
+### 4-1. `.devcontainer/` の中身 (Dev Container 初心者向け)
+
+このリポジトリは **Dev Container を最小構成** で運用しています。`.devcontainer/` 配下に置いてあるのは次の 2 ファイルだけです。両方とも必須で、これだけあれば `Reopen in Container` で動きます。
+
+#### [`devcontainer.json`](.devcontainer/devcontainer.json) — コンテナの設計図
+
+VS Code Dev Containers が読み込む設定ファイル本体です。主要なキーの意味は以下のとおり。
+
+| キー | 役割 | このリポジトリでの値 |
+|---|---|---|
+| `image` | コンテナのベース OS | `mcr.microsoft.com/devcontainers/base:bookworm` (Debian 12) |
+| `features` | ベースイメージに後から足す機能。Microsoft が公開している部品集 | `common-utils` (sudo / 一般ユーザー周り) と `powershell` (PowerShell 7) を追加 |
+| `postCreateCommand` | コンテナを作り終えた直後に 1 回だけ実行されるコマンド | `setup.ps1` を pwsh で呼び出して Az モジュールを入れる |
+| `customizations.vscode.extensions` | コンテナ内 VS Code に自動で入れる拡張 | PowerShell / Azure 系 / Live Server / Copilot |
+| `customizations.vscode.settings` | コンテナ内 VS Code の既定設定 | 既定ターミナルを `pwsh`、改行コードを LF に固定 |
+| `forwardPorts` | コンテナ内ポートをホストへ自動転送 | `5500` (Live Server で HTML プレビュー用) |
+| `portsAttributes` | 転送ポートの挙動 | `5500` を「Live Server (HTML Reports)」とラベル付けし、自動でブラウザを開く |
+| `remoteUser` | コンテナ内で使うユーザー | `vscode` (root を使わない安全側の既定) |
+
+> 💡 `image` + `features` の組み合わせを使うと、Dockerfile を書かずに「Debian にあとから PowerShell を入れた環境」が手に入ります。Dockerfile を自分で書きたくなるまでは、これが最も簡単な構成です。
+
+#### [`setup.ps1`](.devcontainer/setup.ps1) — モジュール導入の自動化
+
+`postCreateCommand` から呼ばれる初期化スクリプトです。やっていることは 3 つだけ。
+
+1. **進捗表示の抑制** — `$ProgressPreference = 'SilentlyContinue'` で進捗バーによる stdout 詰まりを回避。
+2. **PSGallery を Trusted 化** — 毎回の確認プロンプトを止める。
+3. **`Az.Resources` をインストール** — `Az.Accounts` は依存として自動で入るため、明示インストールしない (重複・遅延回避)。`Install-PSResource` (PSResourceGet) が使えれば優先し、無ければ `Install-Module` にフォールバック。
+
+> 💡 ここを編集すれば、たとえば `Az.Monitor` や `Az.CostManagement` を追加する、Pester や PSScriptAnalyzer を入れる、など簡単に拡張できます。
+
+#### 「`devcontainer-lock.json` は要らないの？」
+
+`features` を使うと VS Code が `devcontainer-lock.json` を自動生成して各 Feature のバージョンを SHA256 で固定することがあります。**このリポジトリではデモ用途を優先して最小構成のため意図的に置いていません。** 必要であれば `Dev Containers: Rebuild Container` 実行時に再生成されます。本番運用で「再ビルド時にバージョンが勝手にズレるのが許せない」ケースのみ、生成されたファイルをコミットして固定する運用に切り替えてください。
 
 ---
 
