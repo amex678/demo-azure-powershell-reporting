@@ -1,0 +1,7 @@
+# 生成物 (再生成可能なため除外)
+output/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp

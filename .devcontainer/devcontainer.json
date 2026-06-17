@@ -1,0 +1,54 @@
+{
+  "name": "Azure PowerShell Reporting",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+  // ホスト OS に依存しない再現可能な環境を提供する
+  // Debian ベース + Dev Container Features で PowerShell を導入
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "configureZshAsDefaultShell": false,
+      "upgradePackages": true,
+      "username": "vscode"
+    },
+    "ghcr.io/devcontainers/features/powershell:1": {
+      "version": "latest"
+    }
+  },
+
+  // コンテナ作成後に Az モジュールを最小構成でインストール
+  "postCreateCommand": "pwsh -NoProfile -ExecutionPolicy Bypass -File ./.devcontainer/setup.ps1",
+
+  // VS Code 拡張とエディタ設定をコンテナ側にも適用
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.powershell",
+        "ms-azuretools.vscode-azureresourcegroups",
+        "ms-azuretools.vscode-azurestorage",
+        "ms-azuretools.vscode-bicep",
+        "ms-azuretools.vscode-containers",
+        "ms-vscode.live-server",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "pwsh",
+        "powershell.powerShellDefaultVersion": "PowerShell",
+        "powershell.integratedConsole.showOnStartup": false,
+        "files.eol": "\n"
+      }
+    }
+  },
+
+  // Live Server のポートをホストへ自動転送
+  "forwardPorts": [5500],
+  "portsAttributes": {
+    "5500": {
+      "label": "Live Server (HTML Reports)",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  "remoteUser": "vscode"
+}

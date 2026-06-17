@@ -1,0 +1,15 @@
+{
+  // VS Code がこのワークスペースを開いた際に推奨する拡張機能
+  // (Dev Container を使う場合は .devcontainer/devcontainer.json 側で自動インストール)
+  "recommendations": [
+    "ms-vscode.powershell",
+    "ms-azuretools.vscode-azureresourcegroups",
+    "ms-azuretools.vscode-azurestorage",
+    "ms-azuretools.vscode-bicep",
+    "ms-azuretools.vscode-containers",
+    "ms-vscode-remote.remote-containers",
+    "ms-vscode.live-server",
+    "GitHub.copilot",
+    "GitHub.copilot-chat"
+  ]
+}
